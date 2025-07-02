@@ -73,15 +73,15 @@
       background: #c82333;
     }
 
-    #copyAcnBtn {
+    #copyPgnBtn {
       background: #28a745;
     }
 
-    #copyAcnBtn:hover {
+    #copyPgnBtn:hover {
       background: #218838;
     }
 
-    #copyAcnBtn.copied {
+    #copyPgnBtn.copied {
       background: #6c757d;
     }
 
@@ -302,7 +302,7 @@
     <div id="controls">
       <button id="resetBtn">Reset</button>
       <button id="undoBtn">Undo</button>
-      <button id="copyAcnBtn">Copy ACN</button>
+      <button id="copyPgnBtn">Copy PGN</button>
     </div>
     <div id="gameInfo">
       <h3>Game Info</h3>
@@ -335,7 +335,7 @@
   </div>
 
   <div id="copyNotification" class="copy-notification">
-    ACN copied to clipboard!
+    PGN copied to clipboard!
   </div>
 
   <script src="https://unpkg.com/@chrisoakman/chessboard2@0.5.0/dist/chessboard2.min.js"></script>
@@ -387,7 +387,7 @@
       }
 
       document.getElementById('undoBtn').disabled = gameHistory.length === 0;
-      document.getElementById('copyAcnBtn').disabled = game.history().length === 0;
+      document.getElementById('copyPgnBtn').disabled = gameHistory.length === 0;
     }
 
     function createMoveNode(move, fen, depth, parentContainer) {
@@ -541,7 +541,7 @@
 
     function makeMove(fen, moveSan) {
       const newGame = new Chess(fen);
-      newGame.move(moveSan);
+      const moveObj = newGame.move(moveSan);
       
       game = newGame;
       board.setPosition(game.fen());
@@ -549,6 +549,7 @@
       gameHistory.push({
         fen: game.fen(),
         move: moveSan,
+        moveObj: moveObj,
         path: [...currentPath, moveSan]
       });
       currentPath.push(moveSan);
@@ -556,44 +557,49 @@
       updateGameInfo();
     }
 
-    function generateAcn() {
-      const moves = game.history();
-      if (moves.length === 0) {
+    function generatePgn() {
+      if (gameHistory.length === 0) {
         return "No moves played";
       }
       
-      let acn = "";
-      for (let i = 0; i < moves.length; i++) {
-        if (i % 2 === 0) {
-          // White move - add move number
-          acn += `${Math.floor(i / 2) + 1}. ${moves[i]}`;
-        } else {
-          // Black move
-          acn += ` ${moves[i]}`;
-        }
+      let pgn = "";
+      let moveNumber = 1;
+      
+      for (let i = 0; i < gameHistory.length; i++) {
+        const historyEntry = gameHistory[i];
+        const isWhiteMove = i % 2 === 0;
         
-        // Add space after each complete move pair or if it's the last move
-        if (i % 2 === 1 || i === moves.length - 1) {
-          acn += " ";
+        if (isWhiteMove) {
+          if (i > 0) pgn += " ";
+          pgn += `${moveNumber}. ${historyEntry.move}`;
+        } else {
+          pgn += ` ${historyEntry.move}`;
+          moveNumber++;
         }
       }
       
       // Add game result if applicable
       if (game.isCheckmate()) {
-        acn += game.turn() === 'w' ? '0-1' : '1-0';
+        pgn += game.turn() === 'w' ? ' 0-1' : ' 1-0';
       } else if (game.isDraw()) {
-        acn += '1/2-1/2';
+        pgn += ' 1/2-1/2';
+      } else if (game.isStalemate()) {
+        pgn += ' 1/2-1/2';
+      } else if (game.isInsufficientMaterial()) {
+        pgn += ' 1/2-1/2';
+      } else if (game.isThreefoldRepetition()) {
+        pgn += ' 1/2-1/2';
       }
       
-      return acn.trim();
+      return pgn;
     }
 
-    function copyAcnToClipboard() {
-      const acn = generateAcn();
-      const copyBtn = document.getElementById('copyAcnBtn');
+    function copyPgnToClipboard() {
+      const pgn = generatePgn();
+      const copyBtn = document.getElementById('copyPgnBtn');
       const notification = document.getElementById('copyNotification');
       
-      navigator.clipboard.writeText(acn).then(() => {
+      navigator.clipboard.writeText(pgn).then(() => {
         // Show success feedback
         copyBtn.classList.add('copied');
         copyBtn.textContent = 'Copied!';
@@ -602,21 +608,21 @@
         
         setTimeout(() => {
           copyBtn.classList.remove('copied');
-          copyBtn.textContent = 'Copy ACN';
+          copyBtn.textContent = 'Copy PGN';
           notification.classList.remove('show');
         }, 2000);
       }).catch(err => {
-        console.error('Failed to copy ACN: ', err);
+        console.error('Failed to copy PGN: ', err);
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
-        textArea.value = acn;
+        textArea.value = pgn;
         document.body.appendChild(textArea);
         textArea.select();
         try {
           document.execCommand('copy');
           copyBtn.textContent = 'Copied!';
           setTimeout(() => {
-            copyBtn.textContent = 'Copy ACN';
+            copyBtn.textContent = 'Copy PGN';
           }, 2000);
         } catch (fallbackErr) {
           console.error('Fallback copy failed: ', fallbackErr);
@@ -719,7 +725,7 @@
     // Event listeners
     document.getElementById('resetBtn').addEventListener('click', resetGame);
     document.getElementById('undoBtn').addEventListener('click', undoMove);
-    document.getElementById('copyAcnBtn').addEventListener('click', copyAcnToClipboard);
+    document.getElementById('copyPgnBtn').addEventListener('click', copyPgnToClipboard);
     document.getElementById('expandAllBtn').addEventListener('click', expandAll);
     document.getElementById('collapseAllBtn').addEventListener('click', collapseAll);
 
@@ -736,9 +742,9 @@
             resetGame();
             break;
           case 'c':
-            if (game.history().length > 0) {
+            if (gameHistory.length > 0) {
               e.preventDefault();
-              copyAcnToClipboard();
+              copyPgnToClipboard();
             }
             break;
         }
