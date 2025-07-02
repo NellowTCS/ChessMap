@@ -6,292 +6,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboard2@0.5.0/dist/chessboard2.min.css">
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f8f9fa;
-      color: #333;
-      display: grid;
-      grid-template-columns: 400px 1fr;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    #boardContainer {
-      display: flex;
-      flex-direction: column;
-      padding: 20px;
-      border-right: 2px solid #dee2e6;
-      background: white;
-    }
-
-    #board {
-      width: 360px;
-      height: 360px;
-      margin: 0 auto 20px;
-      border: 2px solid #007bff;
-      border-radius: 8px;
-    }
-
-    #controls {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    #resetBtn {
-      background: #dc3545;
-    }
-
-    #resetBtn:hover {
-      background: #c82333;
-    }
-
-    #copyPgnBtn {
-      background: #28a745;
-    }
-
-    #copyPgnBtn:hover {
-      background: #218838;
-    }
-
-    #copyPgnBtn.copied {
-      background: #6c757d;
-    }
-
-    #status {
-      text-align: center;
-      padding: 12px;
-      background: #e9ecef;
-      border-radius: 4px;
-      font-weight: 500;
-      margin-bottom: 20px;
-    }
-
-    #gameInfo {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 4px;
-      border: 1px solid #dee2e6;
-    }
-
-    #gameInfo h3 {
-      margin: 0 0 10px 0;
-      color: #007bff;
-      font-size: 16px;
-    }
-
-    .info-item {
-      display: flex;
-      justify-content: space-between;
-      margin: 5px 0;
-      font-size: 14px;
-    }
-
-    .info-value {
-      font-weight: 600;
-      color: #007bff;
-    }
-
-    #sidebar {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-      background: white;
-    }
-
-    #treeHeader {
-      padding: 20px;
-      border-bottom: 1px solid #dee2e6;
-      background: #f8f9fa;
-    }
-
-    #treeHeader h2 {
-      margin: 0 0 15px 0;
-      color: #333;
-      font-size: 20px;
-    }
-
-    #treeControls {
-      display: flex;
-      gap: 10px;
-    }
-
-    #treeContainer {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
-
-    #treeContainer::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    #treeContainer::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
-    }
-
-    #treeContainer::-webkit-scrollbar-thumb {
-      background: #007bff;
-      border-radius: 4px;
-    }
-
-    #treeContainer::-webkit-scrollbar-thumb:hover {
-      background: #0056b3;
-    }
-
-    /* Tree Styles */
-    .tree-node {
-      margin: 4px 0;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #f8f9fa;
-      border: 1px solid transparent;
-      font-size: 14px;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-
-    .tree-node:hover {
-      background: #e9ecef;
-      border-color: #007bff;
-    }
-
-    .tree-node.active {
-      background: #007bff;
-      color: white;
-      border-color: #0056b3;
-    }
-
-    .tree-node.expandable::before {
-      content: "▶";
-      color: #007bff;
-      font-size: 10px;
-      width: 12px;
-      text-align: center;
-    }
-
-    .tree-node.expanded::before {
-      content: "▼";
-    }
-
-    .tree-node.active::before {
-      color: white;
-    }
-
-    .tree-children {
-      margin-left: 20px;
-      border-left: 2px solid #dee2e6;
-      padding-left: 15px;
-      margin-top: 4px;
-    }
-
-    .tree-children.hidden {
-      display: none;
-    }
-
-    .move-text {
-      font-weight: 600;
-    }
-
-    .move-info {
-      color: #6c757d;
-      font-size: 12px;
-      margin-left: auto;
-    }
-
-    .tree-node.active .move-info {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    /* Depth-based styling */
-    .depth-0 { font-size: 15px; }
-    .depth-1 { font-size: 14px; }
-    .depth-2 { font-size: 13px; }
-    .depth-3, .depth-4, .depth-5 { font-size: 12px; }
-    .depth-6, .depth-7, .depth-8, .depth-9, .depth-10 { font-size: 11px; }
-
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8f9fa; color: #333; display: grid; grid-template-columns: 400px 1fr; height: 100vh; overflow: hidden; }
+    #boardContainer { display: flex; flex-direction: column; padding: 20px; border-right: 2px solid #dee2e6; background: white; }
+    #board { width: 360px; height: 360px; margin: 0 auto 20px; border: 2px solid #007bff; border-radius: 8px; }
+    #controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+    button { padding: 8px 16px; border: none; border-radius: 4px; background: #007bff; color: white; cursor: pointer; font-size: 14px; font-weight: 500; }
+    button:hover { background: #0056b3; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #resetBtn { background: #dc3545; }
+    #resetBtn:hover { background: #c82333; }
+    #copyPgnBtn { background: #28a745; }
+    #copyPgnBtn:hover { background: #218838; }
+    #copyPgnBtn.copied { background: #6c757d; }
+    #status { text-align: center; padding: 12px; background: #e9ecef; border-radius: 4px; font-weight: 500; margin-bottom: 20px; }
+    #gameInfo { background: #f8f9fa; padding: 15px; border-radius: 4px; border: 1px solid #dee2e6; }
+    #gameInfo h3 { margin: 0 0 10px 0; color: #007bff; font-size: 16px; }
+    .info-item { display: flex; justify-content: space-between; margin: 5px 0; font-size: 14px; }
+    .info-value { font-weight: 600; color: #007bff; }
+    #sidebar { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: white; }
+    #treeHeader { padding: 20px; border-bottom: 1px solid #dee2e6; background: #f8f9fa; }
+    #treeHeader h2 { margin: 0 0 15px 0; color: #333; font-size: 20px; }
+    #treeControls { display: flex; gap: 10px; }
+    #treeContainer { flex: 1; overflow-y: auto; padding: 20px; }
+    #treeContainer::-webkit-scrollbar { width: 8px; }
+    #treeContainer::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    #treeContainer::-webkit-scrollbar-thumb { background: #007bff; border-radius: 4px; }
+    #treeContainer::-webkit-scrollbar-thumb:hover { background: #0056b3; }
+    .tree-node { margin: 4px 0; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #f8f9fa; border: 1px solid transparent; font-size: 14px; font-weight: 500; transition: all 0.2s ease; }
+    .tree-node:hover { background: #e9ecef; border-color: #007bff; }
+    .tree-node.active { background: #007bff; color: white; border-color: #0056b3; }
+    .tree-node.expandable::before { content: "▶"; color: #007bff; font-size: 10px; width: 12px; text-align: center; }
+    .tree-node.expanded::before { content: "▼"; }
+    .tree-node.active::before { color: white; }
+    .tree-children { margin-left: 20px; border-left: 2px solid #dee2e6; padding-left: 15px; margin-top: 4px; }
+    .tree-children.hidden { display: none; }
+    .move-text { font-weight: 600; }
+    .move-info { color: #6c757d; font-size: 12px; margin-left: auto; }
+    .tree-node.active .move-info { color: rgba(255, 255, 255, 0.8); }
+    .depth-0 { font-size: 15px; } .depth-1 { font-size: 14px; } .depth-2 { font-size: 13px; } .depth-3, .depth-4, .depth-5 { font-size: 12px; } .depth-6, .depth-7, .depth-8, .depth-9, .depth-10 { font-size: 11px; }
+    .copy-notification { position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 12px 20px; border-radius: 4px; font-weight: 500; opacity: 0; transform: translateY(-20px); transition: all 0.3s ease; z-index: 1000; }
+    .copy-notification.show { opacity: 1; transform: translateY(0); }
     @media (max-width: 768px) {
-      body {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
-      }
-
-      #boardContainer {
-        border-right: none;
-        border-bottom: 2px solid #dee2e6;
-        padding: 15px;
-      }
-
-      #board {
-        width: 280px;
-        height: 280px;
-      }
-
-      #sidebar {
-        height: auto;
-      }
-
-      #treeContainer {
-        max-height: 50vh;
-      }
-
-      #controls {
-        justify-content: center;
-      }
-    }
-
-    /* Copy notification */
-    .copy-notification {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #28a745;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 4px;
-      font-weight: 500;
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: all 0.3s ease;
-      z-index: 1000;
-    }
-
-    .copy-notification.show {
-      opacity: 1;
-      transform: translateY(0);
+      body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      #boardContainer { border-right: none; border-bottom: 2px solid #dee2e6; padding: 15px; }
+      #board { width: 280px; height: 280px; }
+      #sidebar { height: auto; }
+      #treeContainer { max-height: 50vh; }
+      #controls { justify-content: center; }
     }
   </style>
 </head>
@@ -346,7 +108,7 @@
     let gameHistory = [];
     let currentPath = [];
     let maxDepthReached = 0;
-    let moveNodes = new Map(); // Track all move nodes for easier management
+    let moveNodes = new Map();
     
     const board = Chessboard2('board', {
       position: game.fen(),
@@ -407,7 +169,6 @@
       moveSpan.textContent = displayText;
       nodeDiv.appendChild(moveSpan);
       
-      // Add move info
       const infoSpan = document.createElement('span');
       infoSpan.className = 'move-info';
       const info = [];
@@ -418,7 +179,6 @@
       infoSpan.textContent = info.join(', ');
       nodeDiv.appendChild(infoSpan);
       
-      // Check if this move leads to more moves
       const testGame = new Chess(fen);
       testGame.move(move.san);
       const hasChildren = testGame.moves().length > 0 && !testGame.isGameOver();
@@ -455,19 +215,15 @@
       const nodeData = moveNodes.get(nodeId);
       if (!nodeData) return;
       
-      // If node has children and is expandable, toggle expansion
       if (nodeData.hasChildren && nodeData.element.classList.contains('expandable')) {
         toggleNodeExpansion(nodeId);
       }
       
-      // Make the move
-      makeMove(nodeData.fen, nodeData.move);
+      makeMove(nodeData.fen, nodeData.move.san);
       
-      // Update active state
       document.querySelectorAll('.tree-node.active').forEach(el => el.classList.remove('active'));
       nodeData.element.classList.add('active');
       
-      // Scroll to view
       nodeData.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -478,18 +234,15 @@
       const childrenContainer = nodeData.element.nextElementSibling;
       
       if (nodeData.expanded) {
-        // Collapse
         if (childrenContainer && childrenContainer.classList.contains('tree-children')) {
           childrenContainer.classList.add('hidden');
         }
         nodeData.element.classList.remove('expanded');
         nodeData.expanded = false;
       } else {
-        // Expand
         if (childrenContainer && childrenContainer.classList.contains('tree-children')) {
           childrenContainer.classList.remove('hidden');
         } else {
-          // Create children for the first time
           expandNode(nodeId);
         }
         nodeData.element.classList.add('expanded');
@@ -501,36 +254,24 @@
       const nodeData = moveNodes.get(nodeId);
       if (!nodeData || !nodeData.hasChildren) return;
       
-      // Create the new game state after this move
       const newGame = new Chess(nodeData.fen);
       newGame.move(nodeData.move.san);
       
-      // Create children container
       const childrenContainer = document.createElement('div');
       childrenContainer.className = 'tree-children';
       
-      // Insert after the node
       nodeData.element.parentNode.insertBefore(childrenContainer, nodeData.element.nextSibling);
       
-      // Get all possible moves and create nodes for them
       const moves = newGame.moves({ verbose: true });
       
-      // Sort moves by a simple heuristic
       moves.sort((a, b) => {
         let scoreA = 0, scoreB = 0;
-        
-        // Prioritize captures
         if (a.captured) scoreA += 10;
         if (b.captured) scoreB += 10;
-        
-        // Prioritize checks
         if (a.san.includes('+')) scoreA += 5;
         if (b.san.includes('+')) scoreB += 5;
-        
-        // Prioritize checkmates
         if (a.san.includes('#')) scoreA += 100;
         if (b.san.includes('#')) scoreB += 100;
-        
         return scoreB - scoreA;
       });
       
@@ -546,9 +287,10 @@
       game = newGame;
       board.setPosition(game.fen());
       
+      // FIXED: Store the SAN string instead of the move object
       gameHistory.push({
         fen: game.fen(),
-        move: moveSan,
+        move: moveSan,  // This is the SAN string
         moveObj: moveObj,
         path: [...currentPath, moveSan]
       });
@@ -571,23 +313,16 @@
         
         if (isWhiteMove) {
           if (i > 0) pgn += " ";
-          pgn += `${moveNumber}. ${historyEntry.move}`;
+          pgn += `${moveNumber}. ${historyEntry.move}`; // Now this will be the SAN string
         } else {
           pgn += ` ${historyEntry.move}`;
           moveNumber++;
         }
       }
       
-      // Add game result if applicable
       if (game.isCheckmate()) {
         pgn += game.turn() === 'w' ? ' 0-1' : ' 1-0';
-      } else if (game.isDraw()) {
-        pgn += ' 1/2-1/2';
-      } else if (game.isStalemate()) {
-        pgn += ' 1/2-1/2';
-      } else if (game.isInsufficientMaterial()) {
-        pgn += ' 1/2-1/2';
-      } else if (game.isThreefoldRepetition()) {
+      } else if (game.isDraw() || game.isStalemate() || game.isInsufficientMaterial() || game.isThreefoldRepetition()) {
         pgn += ' 1/2-1/2';
       }
       
@@ -600,10 +335,8 @@
       const notification = document.getElementById('copyNotification');
       
       navigator.clipboard.writeText(pgn).then(() => {
-        // Show success feedback
         copyBtn.classList.add('copied');
         copyBtn.textContent = 'Copied!';
-        
         notification.classList.add('show');
         
         setTimeout(() => {
@@ -613,7 +346,6 @@
         }, 2000);
       }).catch(err => {
         console.error('Failed to copy PGN: ', err);
-        // Fallback for older browsers
         const textArea = document.createElement('textarea');
         textArea.value = pgn;
         document.body.appendChild(textArea);
@@ -621,9 +353,7 @@
         try {
           document.execCommand('copy');
           copyBtn.textContent = 'Copied!';
-          setTimeout(() => {
-            copyBtn.textContent = 'Copy PGN';
-          }, 2000);
+          setTimeout(() => copyBtn.textContent = 'Copy PGN', 2000);
         } catch (fallbackErr) {
           console.error('Fallback copy failed: ', fallbackErr);
         }
@@ -637,7 +367,6 @@
       
       const moves = game.moves({ verbose: true });
       
-      // Sort opening moves
       moves.sort((a, b) => {
         const openingMoves = ['e4', 'e5', 'd4', 'd5', 'Nf3', 'Nc6', 'Nf6', 'Nc3'];
         const scoreA = openingMoves.includes(a.san) ? 10 : 0;
@@ -676,7 +405,6 @@
         board.setPosition(game.fen());
         updateGameInfo();
         
-        // Update active state
         document.querySelectorAll('.tree-node.active').forEach(el => el.classList.remove('active'));
       }
     }
@@ -722,14 +450,12 @@
       });
     }
 
-    // Event listeners
     document.getElementById('resetBtn').addEventListener('click', resetGame);
     document.getElementById('undoBtn').addEventListener('click', undoMove);
     document.getElementById('copyPgnBtn').addEventListener('click', copyPgnToClipboard);
     document.getElementById('expandAllBtn').addEventListener('click', expandAll);
     document.getElementById('collapseAllBtn').addEventListener('click', collapseAll);
 
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey || e.metaKey) {
         switch(e.key) {
@@ -751,7 +477,6 @@
       }
     });
 
-    // Initialize
     initializeTree();
     updateGameInfo();
   </script>
