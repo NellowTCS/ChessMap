@@ -33,7 +33,12 @@
     #treeContainer::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
     #treeContainer::-webkit-scrollbar-thumb { background: #007bff; border-radius: 4px; }
     #treeContainer::-webkit-scrollbar-thumb:hover { background: #0056b3; }
-    .tree-node { margin: 4px 0; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #f8f9fa; border: 1px solid transparent; font-size: 14px; font-weight: 500; transition: all 0.2s ease; }
+    .tree-node { margin: 4px 0; padding: 8px 12px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #f8f9fa; border: 1px solid transparent; font-size: 14px; font-weight: 500; transition: all 0.2s ease; min-height: 32px; }
+    .depth-6 .tree-node,
+    .depth-7 .tree-node,
+    .depth-8 .tree-node,
+    .depth-9 .tree-node,
+    .depth-10 .tree-node { padding: 6px 10px; margin: 3px 0; min-height: 28px; }
     .tree-node:hover { background: #e9ecef; border-color: #007bff; }
     .tree-node.active { background: #007bff; color: white; border-color: #0056b3; }
     .tree-node.expandable::before { content: "▶"; color: #007bff; font-size: 10px; width: 12px; text-align: center; }
@@ -41,10 +46,28 @@
     .tree-node.active::before { color: white; }
     .tree-children { margin-left: 20px; border-left: 2px solid #dee2e6; padding-left: 15px; margin-top: 4px; }
     .tree-children.hidden { display: none; }
+    .depth-6 .tree-children,
+    .depth-7 .tree-children,
+    .depth-8 .tree-children,
+    .depth-9 .tree-children,
+    .depth-10 .tree-children { margin-left: 15px; padding-left: 10px; }
+    .depth-8 .tree-children,
+    .depth-9 .tree-children,
+    .depth-10 .tree-children { margin-left: 10px; padding-left: 8px; }
     .move-text { font-weight: 600; }
     .move-info { color: #6c757d; font-size: 12px; margin-left: auto; }
     .tree-node.active .move-info { color: rgba(255, 255, 255, 0.8); }
-    .depth-0 { font-size: 15px; } .depth-1 { font-size: 14px; } .depth-2 { font-size: 13px; } .depth-3, .depth-4, .depth-5 { font-size: 12px; } .depth-6, .depth-7, .depth-8, .depth-9, .depth-10 { font-size: 11px; }
+    .depth-0 { font-size: 15px; } 
+    .depth-1 { font-size: 14px; } 
+    .depth-2 { font-size: 14px; } 
+    .depth-3 { font-size: 13px; } 
+    .depth-4 { font-size: 13px; } 
+    .depth-5 { font-size: 13px; }
+    .depth-6 { font-size: 12px; } 
+    .depth-7 { font-size: 12px; } 
+    .depth-8 { font-size: 12px; } 
+    .depth-9 { font-size: 11px; } 
+    .depth-10 { font-size: 11px; }
     .copy-notification { position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 12px 20px; border-radius: 4px; font-weight: 500; opacity: 0; transform: translateY(-20px); transition: all 0.3s ease; z-index: 1000; }
     .copy-notification.show { opacity: 1; transform: translateY(0); }
     @media (max-width: 768px) {
@@ -106,7 +129,6 @@
 
     let game = new Chess();
     let gameHistory = [];
-    let currentPath = [];
     let maxDepthReached = 0;
     let moveNodes = new Map();
     
@@ -123,8 +145,8 @@
     const treeDepth = document.getElementById('treeDepth');
 
     function updateGameInfo() {
-      const turn = Math.ceil(game.history().length / 2);
-      const moves = game.history().length;
+      const moves = gameHistory.length;
+      const turn = Math.floor(moves / 2) + 1;
       
       turnInfo.textContent = turn;
       moveCount.textContent = moves;
@@ -152,14 +174,16 @@
       document.getElementById('copyPgnBtn').disabled = gameHistory.length === 0;
     }
 
-    function createMoveNode(move, fen, depth, parentContainer) {
+    function createMoveNode(move, fen, depth, parentContainer, pathToNode = []) {
       maxDepthReached = Math.max(maxDepthReached, depth);
       
       const nodeDiv = document.createElement('div');
       nodeDiv.className = `tree-node depth-${Math.min(depth, 10)}`;
       
-      const moveNumber = Math.ceil((new Chess(fen).history().length + 1) / 2);
-      const isWhite = new Chess(fen).turn() === 'w';
+      const testGame = new Chess(fen);
+      const moveNumber = Math.floor(testGame.moveNumber()) + 1;
+      const isWhite = testGame.turn() === 'w';
+      
       const displayText = depth === 0 ? 
         `${moveNumber}${isWhite ? '.' : '...'} ${move.san}` : 
         move.san;
@@ -179,7 +203,6 @@
       infoSpan.textContent = info.join(', ');
       nodeDiv.appendChild(infoSpan);
       
-      const testGame = new Chess(fen);
       testGame.move(move.san);
       const hasChildren = testGame.moves().length > 0 && !testGame.isGameOver();
       
@@ -187,7 +210,8 @@
         nodeDiv.classList.add('expandable');
       }
       
-      const nodeId = `${fen}-${move.san}`;
+      const fullPath = [...pathToNode, move.san];
+      const nodeId = fullPath.join('-');
       nodeDiv.dataset.nodeId = nodeId;
       nodeDiv.dataset.fen = fen;
       nodeDiv.dataset.move = move.san;
@@ -199,7 +223,8 @@
         fen: fen,
         depth: depth,
         expanded: false,
-        hasChildren: hasChildren
+        hasChildren: hasChildren,
+        path: fullPath
       });
       
       nodeDiv.addEventListener('click', (e) => {
@@ -219,7 +244,23 @@
         toggleNodeExpansion(nodeId);
       }
       
-      makeMove(nodeData.fen, nodeData.move.san);
+      // Reset to start and replay the entire path
+      game = new Chess();
+      gameHistory = [];
+      
+      for (const moveSan of nodeData.path) {
+        const moveObj = game.move(moveSan);
+        if (moveObj) {
+          gameHistory.push({
+            fen: game.fen(),
+            move: moveSan,
+            moveObj: moveObj
+          });
+        }
+      }
+      
+      board.setPosition(game.fen());
+      updateGameInfo();
       
       document.querySelectorAll('.tree-node.active').forEach(el => el.classList.remove('active'));
       nodeData.element.classList.add('active');
@@ -276,27 +317,8 @@
       });
       
       moves.forEach(move => {
-        createMoveNode(move, newGame.fen(), nodeData.depth + 1, childrenContainer);
+        createMoveNode(move, newGame.fen(), nodeData.depth + 1, childrenContainer, nodeData.path);
       });
-    }
-
-    function makeMove(fen, moveSan) {
-      const newGame = new Chess(fen);
-      const moveObj = newGame.move(moveSan);
-      
-      game = newGame;
-      board.setPosition(game.fen());
-      
-      // FIXED: Store the SAN string instead of the move object
-      gameHistory.push({
-        fen: game.fen(),
-        move: moveSan,  // This is the SAN string
-        moveObj: moveObj,
-        path: [...currentPath, moveSan]
-      });
-      currentPath.push(moveSan);
-      
-      updateGameInfo();
     }
 
     function generatePgn() {
@@ -304,21 +326,28 @@
         return "No moves played";
       }
       
-      let pgn = "";
+      let pgn = "[Event \"Chess Move Tree Game\"]\n";
+      pgn += `[Date \"${new Date().toISOString().split('T')[0]}\"]\n`;
+      pgn += "[White \"Player\"]\n";
+      pgn += "[Black \"Player\"]\n\n";
+      
       let moveNumber = 1;
+      let moveText = "";
       
       for (let i = 0; i < gameHistory.length; i++) {
         const historyEntry = gameHistory[i];
         const isWhiteMove = i % 2 === 0;
         
         if (isWhiteMove) {
-          if (i > 0) pgn += " ";
-          pgn += `${moveNumber}. ${historyEntry.move}`; // Now this will be the SAN string
+          if (i > 0) moveText += " ";
+          moveText += `${moveNumber}. ${historyEntry.move}`;
         } else {
-          pgn += ` ${historyEntry.move}`;
+          moveText += ` ${historyEntry.move}`;
           moveNumber++;
         }
       }
+      
+      pgn += moveText;
       
       if (game.isCheckmate()) {
         pgn += game.turn() === 'w' ? ' 0-1' : ' 1-0';
@@ -375,14 +404,13 @@
       });
       
       moves.forEach(move => {
-        createMoveNode(move, game.fen(), 0, moveTree);
+        createMoveNode(move, game.fen(), 0, moveTree, []);
       });
     }
 
     function resetGame() {
       game = new Chess();
       gameHistory = [];
-      currentPath = [];
       maxDepthReached = 0;
       
       board.setPosition(game.fen());
@@ -393,13 +421,10 @@
     function undoMove() {
       if (gameHistory.length > 0) {
         gameHistory.pop();
-        currentPath.pop();
         
-        if (gameHistory.length > 0) {
-          const lastState = gameHistory[gameHistory.length - 1];
-          game = new Chess(lastState.fen);
-        } else {
-          game = new Chess();
+        game = new Chess();
+        for (const entry of gameHistory) {
+          game.move(entry.move);
         }
         
         board.setPosition(game.fen());
