@@ -1,5 +1,8 @@
 import { Chess } from 'https://cdn.jsdelivr.net/npm/chess.js@1.4.0/+esm';
 
+// "Settings"
+let autoCenterActiveNode = false; // set true to enable auto-centering
+
 let game = new Chess();
 let gameHistory = [];
 let maxDepthReached = 0;
@@ -240,16 +243,17 @@ function handleMoveClick(nodeId) {
     document.querySelectorAll('.tree-node.active').forEach(el => el.classList.remove('active'));
     nodeData.element.classList.add('active');
 
-    // Center the active node in view
-    const rect = nodeData.element.getBoundingClientRect();
-    const viewportRect = treeViewport.getBoundingClientRect();
-
-    const targetX = viewportRect.width / 2 - rect.left + viewportRect.left - rect.width / 2;
-    const targetY = viewportRect.height / 2 - rect.top + viewportRect.top - rect.height / 2;
-
-    panX += (targetX - panX) * 0.3;
-    panY += (targetY - panY) * 0.3;
-    updateTransform();
+    if (autoCenterActiveNode) {
+        const rect = nodeData.element.getBoundingClientRect();
+        const viewportRect = treeViewport.getBoundingClientRect();
+    
+        const targetX = viewportRect.width / 2 - rect.left + viewportRect.left - rect.width / 2;
+        const targetY = viewportRect.height / 2 - rect.top + viewportRect.top - rect.height / 2;
+    
+        panX += (targetX - panX) * 0.3;
+        panY += (targetY - panY) * 0.3;
+        updateTransform();
+    }
 }
 
 function toggleNodeExpansion(nodeId) {
